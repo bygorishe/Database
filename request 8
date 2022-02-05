@@ -1,0 +1,36 @@
+//Определить у каких изделий суммарный объем продаж выше среднего. 
+//Вывести сумму, полученную за изделие из каждого города, где ппроживают клиенты
+
+select t1.t1_n_izd, t1.t1_town, coalesce(t2_sum, 0)
+from
+(select r.n_izd as t1_n_izd, c.town as t1_town
+from r
+cross join c
+group by r.n_izd, c.town) t1
+
+left join (select n_izd as t2_n_izd, c.town as t2_town, sum(kol * price) as t2_sum
+from r
+join c on c.n_c = r.n_c
+group by c.town, n_izd
+
+having n_izd in
+(select n_izd
+from r
+group by n_izd
+having avg(kol)>
+(select avg(t.average)
+from
+(select n_izd, avg(kol)as average
+from r
+group by n_izd) t))) t2 on t1.t1_n_izd = t2.t2_n_izd and t1.t1_town = t2.t2_town
+
+where t1.t1_n_izd in
+(select n_izd
+from r
+group by n_izd
+having avg(kol)>
+(select avg(t.average)
+from
+(select n_izd, avg(kol)as average
+from r
+group by n_izd) t))
